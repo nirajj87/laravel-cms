@@ -1,0 +1,105 @@
+# Content platform — local stack
+#
+# App:        http://localhost:8080
+# phpMyAdmin: http://localhost:8081  (server: mysql, user: root, password: root)
+# MySQL:      localhost:3307         (database: blog, user: blog, password: secret)
+#
+# First run:
+#   docker compose up -d --build
+#   docker compose exec app php artisan key:generate
+#   docker compose exec app php artisan migrate --seed
+#   docker compose --profile assets run --rm node
+#
+# Local sign-in after seeding (also shown on the login page):
+#   Super admin: admin@platform.test / password
+#   Tenant owner: owner@northwind.test / password
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    environment:
+      INSTALL_DEPS: "true"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.4
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: blog
+      MYSQL_USER: blog
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    restart: unless-stopped
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: root
+      UPLOAD_LIMIT: 64M
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  queue:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--timeout=180"]
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  node:
+    image: node:22-alpine
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    command: sh -c "npm install && npm run build"
+    profiles: ["assets"]
+
+volumes:
+  mysql_data:
