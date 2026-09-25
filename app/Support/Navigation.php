@@ -8,8 +8,16 @@ use Illuminate\Support\Facades\Route;
 
 class Navigation
 {
+    /** @var list<string> */
+    private array $frontendSlugs = ['layout-builder', 'menu-manager', 'header-footer', 'theme-settings'];
+
+    /** @var list<string> */
+    private array $backendSlugs = ['users', 'roles', 'permissions', 'settings', 'backup'];
+
     /**
-     * @return list<array{label: string, route: string, icon: string, active: string}>
+     * Flat links plus one or two dropdown groups.
+     *
+     * @return list<array<string, mixed>>
      */
     public function for(?User $user): array
     {
@@ -19,11 +27,11 @@ class Navigation
 
         if ($user->isSuperAdmin() && ! request()->routeIs('tenant.*')) {
             return [
-                ['label' => 'Dashboard', 'route' => 'platform.dashboard', 'icon' => 'grid', 'active' => 'platform.dashboard'],
-                ['label' => 'Tenants', 'route' => 'platform.tenants.index', 'icon' => 'users', 'active' => 'platform.tenants.*'],
-                ['label' => 'Activity', 'route' => 'platform.activity.index', 'icon' => 'chart', 'active' => 'platform.activity.*'],
-                ['label' => 'Backups', 'route' => 'platform.backups.index', 'icon' => 'archive', 'active' => 'platform.backups.*'],
-                ['label' => 'Settings', 'route' => 'platform.settings.edit', 'icon' => 'cog', 'active' => 'platform.settings.*'],
+                $this->link('Dashboard', 'platform.dashboard', 'grid', 'platform.dashboard'),
+                $this->link('Tenants', 'platform.tenants.index', 'users', 'platform.tenants.*'),
+                $this->link('Activity', 'platform.activity.index', 'chart', 'platform.activity.*'),
+                $this->link('Backups', 'platform.backups.index', 'archive', 'platform.backups.*'),
+                $this->link('Settings', 'platform.settings.edit', 'cog', 'platform.settings.*'),
             ];
         }
 
@@ -33,31 +41,90 @@ class Navigation
             return [];
         }
 
-        return Module::query()
-            ->orderBy('sort_order')
-            ->get()
-            ->filter(function (Module $module) use ($tenant, $user) {
-                if (! $tenant->hasModule($module->slug)) {
-                    return false;
-                }
+        $items = [];
+        $frontend = [];
+        $backend = [];
 
-                if ($module->nav_permission && ! $user->hasPermission($module->nav_permission)) {
-                    return false;
-                }
+        foreach (Module::query()->orderBy('sort_order')->get() as $module) {
+            if (! $tenant->hasModule($module->slug)) {
+                continue;
+            }
 
-                $route = $module->routeName();
+            if ($module->nav_permission && ! $user->hasPermission($module->nav_permission)) {
+                continue;
+            }
 
-                return $route && Route::has($route);
-            })
-            ->map(fn (Module $module) => [
-                'label' => $module->name,
-                'route' => $module->routeName(),
-                'icon' => $module->icon ?: 'grid',
-                'active' => str_ends_with($module->routeName(), '.index')
-                    ? str_replace('.index', '.*', $module->routeName())
-                    : $module->routeName(),
-            ])
-            ->values()
-            ->all();
+            $route = $module->routeName();
+
+            if (! $route || ! Route::has($route)) {
+                continue;
+            }
+
+            $link = $this->link(
+                $module->name,
+                $route,
+                $module->icon ?: 'grid',
+                str_ends_with($route, '.index')
+                    ? str_replace('.index', '.*', $route)
+                    : (str_ends_with($route, '.edit') ? str_replace('.edit', '.*', $route) : $route),
+            );
+
+            if (in_array($module->slug, $this->frontendSlugs, true)) {
+                $frontend[] = $link;
+            } elseif (in_array($module->slug, $this->backendSlugs, true)) {
+                $backend[] = $link;
+            } else {
+                $items[] = $link;
+            }
+        }
+
+        if ($frontend !== []) {
+            $items[] = $this->group('Frontend Settings', 'paint', $frontend);
+        }
+
+        if ($backend !== []) {
+            $items[] = $this->group('Backend Settings', 'cog', $backend);
+        }
+
+        return $items;
+    }
+
+    /**
+     * @return array{type: string, label: string, route: string, icon: string, active: string, current: bool}
+     */
+    private function link(string $label, string $route, string $icon, string $active): array
+    {
+        return [
+            'type' => 'link',
+            'label' => $label,
+            'route' => $route,
+            'icon' => $icon,
+            'active' => $active,
+            'current' => request()->routeIs($active),
+        ];
+    }
+
+    /**
+     * @param  list<array{type: string, label: string, route: string, icon: string, active: string, current: bool}>  $children
+     * @return array{type: string, label: string, icon: string, open: bool, children: list<array<string, mixed>>}
+     */
+    private function group(string $label, string $icon, array $children): array
+    {
+        $open = false;
+
+        foreach ($children as $child) {
+            if ($child['current']) {
+                $open = true;
+                break;
+            }
+        }
+
+        return [
+            'type' => 'group',
+            'label' => $label,
+            'icon' => $icon,
+            'open' => $open,
+            'children' => $children,
+        ];
     }
 }

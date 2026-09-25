@@ -7,10 +7,10 @@
 @section('content')
     @include('partials.dashboard-stats', [
         'cards' => [
-            ['label' => 'Workspaces', 'value' => $summary['tenants'], 'hint' => $summary['active_tenants'].' active'],
-            ['label' => 'Users', 'value' => $summary['users']],
-            ['label' => 'Posts', 'value' => $summary['posts'], 'hint' => ($summary['backup']?->status->label() ?? 'No backup').' · '.($summary['backup']?->created_at?->diffForHumans() ?? 'never')],
-            ['label' => 'Storage', 'value' => (int) round($summary['storage'] / 1024), 'hint' => 'Kilobytes used'],
+            ['label' => 'Workspaces', 'value' => $summary['tenants'], 'hint' => $summary['active_tenants'].' active', 'icon' => 'users'],
+            ['label' => 'Users', 'value' => $summary['users'], 'icon' => 'users'],
+            ['label' => 'Posts', 'value' => $summary['posts'], 'hint' => ($summary['backup']?->status->label() ?? 'No backup').' · '.($summary['backup']?->created_at?->diffForHumans() ?? 'never'), 'icon' => 'document'],
+            ['label' => 'Storage', 'value' => (int) round($summary['storage'] / 1024), 'hint' => 'Kilobytes used', 'icon' => 'archive'],
         ],
         'chart' => $summary['chart'],
     ])

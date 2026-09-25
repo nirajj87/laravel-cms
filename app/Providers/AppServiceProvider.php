@@ -60,7 +60,7 @@ class AppServiceProvider extends ServiceProvider
         View::composer('layouts.app', function ($view) {
             $user = auth()->user();
             $tenant = app(TenantContext::class)->get();
-            $cacheKey = 'nav.'.($user?->id ?? 0).'.'.($tenant?->id ?? 0).'.'.(request()->routeIs('tenant.*') ? 't' : 'p');
+            $cacheKey = 'nav.v4.'.($user?->id ?? 0).'.'.($tenant?->id ?? 0).'.'.(request()->routeIs('tenant.*') ? 't' : 'p');
 
             $view->with('navigation', Cache::remember($cacheKey, 120, fn () => app(Navigation::class)->for($user)));
             $view->with('currentTenant', $tenant);

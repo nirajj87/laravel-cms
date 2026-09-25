@@ -1,35 +1,37 @@
-<article class="site-card {{ ($cardFade ?? false) ? 'site-fade' : '' }}">
-    @if ($card['href'])
-        <a href="{{ $card['href'] }}">
-    @endif
-    @if ($card['image'])
-        <img src="{{ $card['image'] }}" alt="{{ $card['title'] }}" loading="lazy">
-    @else
-        <div class="site-placeholder" aria-hidden="true"><span>{{ $card['mark'] ?? '•' }}</span></div>
-    @endif
-    @if ($card['href'])
-        </a>
-    @endif
+﻿<article class="site-card {{ ($cardFade ?? false) ? 'site-fade' : '' }}">
+    <div class="site-card-media">
+        @if ($card['href'])
+            <a href="{{ $card['href'] }}" tabindex="-1" aria-hidden="true">
+        @endif
+        @if ($card['image'])
+            <img src="{{ $card['image'] }}" alt="" loading="lazy">
+        @else
+            <div class="site-placeholder" aria-hidden="true"><span>{{ $card['mark'] ?? '•' }}</span></div>
+        @endif
+        @if ($card['href'])
+            </a>
+        @endif
+    </div>
     <div class="site-card-body">
         @if (! empty($card['category']))
             <p class="site-kicker">{{ $card['category'] }}</p>
         @endif
         <h2>
             @if ($card['href'])
-                <a href="{{ $card['href'] }}" style="color:inherit;text-decoration:none;">{{ $card['title'] }}</a>
+                <a href="{{ $card['href'] }}">{{ $card['title'] }}</a>
             @else
                 {{ $card['title'] }}
             @endif
         </h2>
         @if ($card['excerpt'])
-            <p>{{ $card['excerpt'] }}</p>
+            <p class="site-card-excerpt">{{ $card['excerpt'] }}</p>
         @endif
         @if ($card['author'] || $card['price'] || $card['discount'] || $card['rating'])
             <div class="site-meta">
                 @if ($card['author'])<span>{{ $card['author'] }}</span>@endif
-                @if ($card['price'])<span>{{ $card['price'] }}</span>@endif
-                @if ($card['discount'])<span>{{ $card['discount'] }}</span>@endif
-                @if ($card['rating'])<span>{{ $card['rating'] }}</span>@endif
+                @if ($card['price'])<span class="site-meta-price">{{ $card['price'] }}</span>@endif
+                @if ($card['discount'])<span class="site-meta-deal">{{ $card['discount'] }}</span>@endif
+                @if ($card['rating'])<span class="site-meta-rating">{{ $card['rating'] }}</span>@endif
             </div>
         @endif
         @if ($card['button_url'])

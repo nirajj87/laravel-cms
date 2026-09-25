@@ -11,7 +11,10 @@
         <link rel="icon" href="{{ $brand->faviconUrl() }}">
     @endif
     @include('partials.assets')
-    <style>[x-cloak]{display:none!important}</style>
+    <style>
+        [x-cloak]{display:none!important}
+        @keyframes dash-bar{from{transform:scaleY(0);opacity:.4}to{transform:scaleY(1);opacity:1}}
+    </style>
 </head>
 <body class="min-h-screen bg-stone-100 text-slate-900 antialiased" x-data="{ sidebar: false }">
     <div class="lg:grid lg:min-h-screen lg:grid-cols-[260px_1fr]">
@@ -26,11 +29,35 @@
             </div>
             <nav class="space-y-1 px-3 pb-6">
                 @foreach ($navigation as $item)
-                    <a href="{{ route($item['route']) }}"
-                       class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm {{ request()->routeIs($item['active']) ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                        <x-icon :name="$item['icon']" class="h-4 w-4" />
-                        <span>{{ $item['label'] }}</span>
-                    </a>
+                    @if (($item['type'] ?? 'link') === 'group')
+                        <div x-data="{ open: {{ ! empty($item['open']) ? 'true' : 'false' }} }">
+                            <button type="button"
+                                    class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-slate-300 hover:bg-white/5 hover:text-white"
+                                    @click="open = !open"
+                                    :aria-expanded="open.toString()">
+                                <x-icon :name="$item['icon']" class="h-4 w-4 shrink-0" />
+                                <span class="flex-1">{{ $item['label'] }}</span>
+                                <span class="inline-flex transition" :class="open ? 'rotate-90 text-slate-200' : 'text-slate-500'">
+                                    <x-icon name="chevron" class="h-3.5 w-3.5" />
+                                </span>
+                            </button>
+                            <div class="ml-3 space-y-0.5 border-l border-white/10 pl-2" x-show="open" x-cloak>
+                                @foreach ($item['children'] as $child)
+                                    <a href="{{ route($child['route']) }}"
+                                       class="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm {{ $child['current'] ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                                        <x-icon :name="$child['icon']" class="h-3.5 w-3.5 shrink-0" />
+                                        <span>{{ $child['label'] }}</span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @else
+                        <a href="{{ route($item['route']) }}"
+                           class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm {{ ! empty($item['current']) ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                            <x-icon :name="$item['icon']" class="h-4 w-4 shrink-0" />
+                            <span>{{ $item['label'] }}</span>
+                        </a>
+                    @endif
                 @endforeach
             </nav>
         </aside>

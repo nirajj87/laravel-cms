@@ -22,7 +22,7 @@ class DashboardStats
      */
     public function tenant(Tenant $tenant): array
     {
-        return Cache::remember('dashboard.tenant.'.$tenant->id, 120, function () use ($tenant) {
+        return Cache::remember('dashboard.tenant.'.$tenant->id.'.v2', 120, function () use ($tenant) {
             $posts = Post::withoutGlobalScope('tenant')->where('tenant_id', $tenant->id);
 
             return [
@@ -45,7 +45,7 @@ class DashboardStats
      */
     public function platform(): array
     {
-        return Cache::remember('dashboard.platform', 120, function () {
+        return Cache::remember('dashboard.platform.v2', 120, function () {
             $latest = Backup::query()->latest()->first();
 
             return [
@@ -76,14 +76,21 @@ class DashboardStats
 
         $labels = [];
         $values = [];
+        $dates = [];
 
         for ($i = 0; $i < 7; $i++) {
             $day = $start->copy()->addDays($i);
             $key = $day->toDateString();
             $labels[] = $day->format('D');
+            $dates[] = $day->format('M j');
             $values[] = (int) ($rows[$key] ?? 0);
         }
 
-        return ['labels' => $labels, 'values' => $values];
+        return [
+            'labels' => $labels,
+            'dates' => $dates,
+            'values' => $values,
+            'total' => array_sum($values),
+        ];
     }
 }

@@ -4,11 +4,10 @@ return [
 
     'groups' => [
         'overview' => 'Overview',
-        'administration' => 'Administration',
-        'content' => 'Content',
-        'design' => 'Design',
+        'content' => 'Content & Forms',
+        'frontend' => 'Frontend Settings',
         'growth' => 'Growth',
-        'system' => 'System',
+        'backend' => 'Backend Settings',
     ],
 
     /*
@@ -38,7 +37,7 @@ return [
         'users' => [
             'name' => 'Users',
             'description' => 'Invite and manage people in this workspace.',
-            'group' => 'administration',
+            'group' => 'backend',
             'icon' => 'users',
             'sort_order' => 20,
             'is_core' => true,
@@ -55,7 +54,7 @@ return [
         'roles' => [
             'name' => 'Roles',
             'description' => 'Create roles and assign what each role can do.',
-            'group' => 'administration',
+            'group' => 'backend',
             'icon' => 'shield',
             'sort_order' => 30,
             'is_core' => true,
@@ -72,7 +71,7 @@ return [
         'permissions' => [
             'name' => 'Permissions',
             'description' => 'Review the permission catalog for enabled modules.',
-            'group' => 'administration',
+            'group' => 'backend',
             'icon' => 'key',
             'sort_order' => 40,
             'is_core' => true,
@@ -157,7 +156,7 @@ return [
         'form-builder' => [
             'name' => 'Form Builder',
             'description' => 'Build forms without hard-coded fields.',
-            'group' => 'design',
+            'group' => 'content',
             'icon' => 'form',
             'sort_order' => 90,
             'is_core' => false,
@@ -174,7 +173,7 @@ return [
         'layout-builder' => [
             'name' => 'Layout Builder',
             'description' => 'Arrange sections and layouts for content types.',
-            'group' => 'design',
+            'group' => 'frontend',
             'icon' => 'layout',
             'sort_order' => 100,
             'is_core' => false,
@@ -191,7 +190,7 @@ return [
         'menu-manager' => [
             'name' => 'Menu Manager',
             'description' => 'Manage navigation menus.',
-            'group' => 'design',
+            'group' => 'frontend',
             'icon' => 'menu',
             'sort_order' => 110,
             'is_core' => false,
@@ -208,7 +207,7 @@ return [
         'header-footer' => [
             'name' => 'Header / Footer',
             'description' => 'Configure the site header and footer.',
-            'group' => 'design',
+            'group' => 'frontend',
             'icon' => 'layout',
             'sort_order' => 120,
             'is_core' => false,
@@ -223,7 +222,7 @@ return [
         'theme-settings' => [
             'name' => 'Theme Settings',
             'description' => 'Colors, logo treatment, and theme options.',
-            'group' => 'design',
+            'group' => 'frontend',
             'icon' => 'paint',
             'sort_order' => 130,
             'is_core' => false,
@@ -299,7 +298,7 @@ return [
         'backup' => [
             'name' => 'Backup',
             'description' => 'Workspace export. Platform database backups stay with the super admin.',
-            'group' => 'system',
+            'group' => 'backend',
             'icon' => 'archive',
             'sort_order' => 180,
             'is_core' => false,
@@ -316,7 +315,7 @@ return [
         'settings' => [
             'name' => 'Settings',
             'description' => 'Workspace profile and preferences.',
-            'group' => 'system',
+            'group' => 'backend',
             'icon' => 'cog',
             'sort_order' => 190,
             'is_core' => true,

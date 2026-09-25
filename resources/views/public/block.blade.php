@@ -29,115 +29,99 @@
         @endif
         @break
     @case('search')
+        {{-- Search lives in the hero only; skip a second mid-page search. --}}
+        @break
     @case('hero')
         @php $settings = $block->settings ?? []; @endphp
-        <section class="{{ $block->component === 'hero' ? 'site-hero' : '' }}">
-            @if ($block->component === 'hero')
-                <canvas class="site-hero-canvas" aria-hidden="true"></canvas>
-                <div class="site-hero-copy">
-                    <p class="site-kicker">{{ $tenant->name }}</p>
-                    <h1>{{ $settings['heading'] ?? 'Search content, tools, books...' }}</h1>
-                    @if ($tenant->setting('tagline'))
-                        <p class="site-lead">{{ $tenant->setting('tagline') }}</p>
-                    @endif
-                    @if (! empty($siteSettings['show_search']) || $block->component === 'search')
-                        @include('public._search')
-                    @endif
-                </div>
-                @once
-                    <script type="module">
-                        const canvas = document.querySelector('.site-hero-canvas');
-                        if (canvas && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                        try {
-                        const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js');
-                        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-                        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-                        const scene = new THREE.Scene();
-                        const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 100);
-                        camera.position.set(0, 0.4, 18);
-                        const count = 520;
-                        const positions = new Float32Array(count * 3);
-                        const speeds = new Float32Array(count);
+        <section class="site-hero">
+            <canvas class="site-hero-canvas" aria-hidden="true"></canvas>
+            <div class="site-hero-copy">
+                <p class="site-kicker">{{ $tenant->name }}</p>
+                <h1>{{ $settings['heading'] ?? 'Search content, tools, books...' }}</h1>
+                @if ($tenant->setting('tagline'))
+                    <p class="site-lead">{{ $tenant->setting('tagline') }}</p>
+                @endif
+                @if (! empty($siteSettings['show_search']))
+                    @include('public._search')
+                @endif
+            </div>
+            @once
+                <script type="module">
+                    const canvas = document.querySelector('.site-hero-canvas');
+                    if (canvas && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                    try {
+                    const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js');
+                    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+                    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+                    const scene = new THREE.Scene();
+                    const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 100);
+                    camera.position.set(0, 0.4, 18);
+                    const count = 520;
+                    const positions = new Float32Array(count * 3);
+                    const speeds = new Float32Array(count);
+                    for (let i = 0; i < count; i++) {
+                        positions[i * 3] = (Math.random() - 0.5) * 42;
+                        positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
+                        positions[i * 3 + 2] = (Math.random() - 0.5) * 18;
+                        speeds[i] = 0.2 + Math.random() * 0.8;
+                    }
+                    const geometry = new THREE.BufferGeometry();
+                    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                    const points = new THREE.Points(
+                        geometry,
+                        new THREE.PointsMaterial({ color: 0xffffff, size: 0.065, transparent: true, opacity: 0.7, depthAttenuation: true })
+                    );
+                    const core = new THREE.Mesh(
+                        new THREE.IcosahedronGeometry(3.6, 1),
+                        new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.34 })
+                    );
+                    const ring = new THREE.Mesh(
+                        new THREE.TorusGeometry(6.2, 0.035, 12, 120),
+                        new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.22 })
+                    );
+                    ring.rotation.x = Math.PI / 2.4;
+                    scene.add(points, core, ring);
+                    const resize = () => {
+                        const width = canvas.clientWidth;
+                        const height = canvas.clientHeight;
+                        if (!width || !height) return;
+                        renderer.setSize(width, height, false);
+                        camera.aspect = width / height;
+                        camera.updateProjectionMatrix();
+                    };
+                    const tick = (time) => {
+                        const t = time * 0.001;
+                        core.rotation.y = t * 0.18;
+                        core.rotation.x = t * 0.08;
+                        ring.rotation.z = t * 0.12;
+                        points.rotation.y = t * 0.035;
+                        const pos = geometry.attributes.position.array;
                         for (let i = 0; i < count; i++) {
-                            positions[i * 3] = (Math.random() - 0.5) * 42;
-                            positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
-                            positions[i * 3 + 2] = (Math.random() - 0.5) * 18;
-                            speeds[i] = 0.2 + Math.random() * 0.8;
+                            pos[i * 3 + 1] += Math.sin(t * speeds[i] + i) * 0.004;
                         }
-                        const geometry = new THREE.BufferGeometry();
-                        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-                        const points = new THREE.Points(
-                            geometry,
-                            new THREE.PointsMaterial({ color: 0xffffff, size: 0.065, transparent: true, opacity: 0.7, depthAttenuation: true })
-                        );
-                        const core = new THREE.Mesh(
-                            new THREE.IcosahedronGeometry(3.6, 1),
-                            new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.34 })
-                        );
-                        const ring = new THREE.Mesh(
-                            new THREE.TorusGeometry(6.2, 0.035, 12, 120),
-                            new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.22 })
-                        );
-                        ring.rotation.x = Math.PI / 2.4;
-                        scene.add(points, core, ring);
-                        const resize = () => {
-                            const width = canvas.clientWidth;
-                            const height = canvas.clientHeight;
-                            if (!width || !height) return;
-                            renderer.setSize(width, height, false);
-                            camera.aspect = width / height;
-                            camera.updateProjectionMatrix();
-                        };
-                        const tick = (time) => {
-                            const t = time * 0.001;
-                            core.rotation.y = t * 0.18;
-                            core.rotation.x = t * 0.08;
-                            ring.rotation.z = t * 0.12;
-                            points.rotation.y = t * 0.035;
-                            const pos = geometry.attributes.position.array;
-                            for (let i = 0; i < count; i++) {
-                                pos[i * 3 + 1] += Math.sin(t * speeds[i] + i) * 0.004;
-                            }
-                            geometry.attributes.position.needsUpdate = true;
-                            renderer.render(scene, camera);
-                            requestAnimationFrame(tick);
-                        };
-                        resize();
-                        window.addEventListener('resize', resize);
+                        geometry.attributes.position.needsUpdate = true;
+                        renderer.render(scene, camera);
                         requestAnimationFrame(tick);
-                        } catch (error) {}
-                        }
-                    </script>
-                @endonce
-            @elseif (! empty($siteSettings['show_search']) || $block->component === 'search')
-                @include('public._search')
-            @endif
+                    };
+                    resize();
+                    window.addEventListener('resize', resize);
+                    requestAnimationFrame(tick);
+                    } catch (error) {}
+                    }
+                </script>
+            @endonce
         </section>
         @break
     @case('category_filter')
-        <form id="categories" method="GET" action="{{ route('site.home', ['siteTenant' => $tenant->slug]) }}" style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;">
-            @if (! empty($filters['q']))
-                <input type="hidden" name="q" value="{{ $filters['q'] }}">
-            @endif
-            @if (! empty($filters['type']))
-                <input type="hidden" name="type" value="{{ $filters['type'] }}">
-            @endif
-            <label for="category-filter">Category</label>
-            <select class="site-select" id="category-filter" name="category" onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()" style="max-width:18rem;">
-                <option value="">All categories</option>
-                @foreach ($categoryOptions ?? [] as $option)
-                    <option value="{{ $option['slug'] }}" @selected(($filters['category'] ?? '') === $option['slug'])>{{ $option['label'] }}</option>
-                @endforeach
-            </select>
-        </form>
+        {{-- Category filtering is covered by hero type chips + search; skip mid-page filter. --}}
         @break
     @case('content_grid')
         @if (isset($posts))
             <div id="site-grid">
-                <div style="display:flex;align-items:end;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin:1.4rem 0 .9rem;">
+                <div class="site-browse">
                     <div>
                         <p class="site-kicker">Browse</p>
-                        <h2 style="margin:.2rem 0 0;font-size:clamp(1.35rem,2vw,1.8rem);letter-spacing:-.02em;">
+                        <h2>
                             @if (! empty($listingType))
                                 {{ $listingType->name }}
                             @elseif (! empty($filters['category']))
