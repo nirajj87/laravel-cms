@@ -1,4 +1,4 @@
-﻿<article class="site-card {{ ($cardFade ?? false) ? 'site-fade' : '' }}">
+<article class="site-card {{ ($cardFade ?? false) ? 'site-fade' : '' }}">
     <div class="site-card-media">
         @if ($card['href'])
             <a href="{{ $card['href'] }}" tabindex="-1" aria-hidden="true">

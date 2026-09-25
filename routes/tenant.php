@@ -3,6 +3,7 @@
 use App\Http\Controllers\Tenant\AnalyticsController;
 use App\Http\Controllers\Tenant\BackupController as TenantBackupController;
 use App\Http\Controllers\Tenant\CategoryController;
+use App\Http\Controllers\Tenant\CommerceController;
 use App\Http\Controllers\Tenant\ContentTypeController;
 use App\Http\Controllers\Tenant\DashboardController;
 use App\Http\Controllers\Tenant\EmailController;
@@ -140,6 +141,12 @@ Route::middleware(['auth', 'tenant'])->prefix('app')->name('tenant.')->group(fun
     Route::middleware('module:analytics')->group(function () {
         Route::get('/analytics', [AnalyticsController::class, 'edit'])->middleware('permission:analytics.view')->name('analytics.edit');
         Route::put('/analytics', [AnalyticsController::class, 'update'])->middleware('permission:analytics.update')->name('analytics.update');
+    });
+
+    Route::middleware('module:commerce')->group(function () {
+        Route::get('/commerce', [CommerceController::class, 'edit'])->middleware('permission:commerce.view')->name('commerce.edit');
+        Route::put('/commerce', [CommerceController::class, 'update'])->middleware('permission:commerce.update')->name('commerce.update');
+        Route::put('/commerce/orders/{order}', [CommerceController::class, 'updateOrder'])->middleware('permission:commerce.update')->name('commerce.orders.update');
     });
 
     Route::middleware('module:email')->group(function () {

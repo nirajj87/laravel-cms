@@ -295,6 +295,21 @@ return [
                 'delete' => 'Delete',
             ],
         ],
+        'commerce' => [
+            'name' => 'Commerce',
+            'description' => 'Cart, checkout, payment gateway, and orders.',
+            'group' => 'backend',
+            'icon' => 'cart',
+            'sort_order' => 175,
+            'is_core' => false,
+            'implemented' => true,
+            'route' => 'tenant.commerce.edit',
+            'nav_permission' => 'commerce.view',
+            'actions' => [
+                'view' => 'View',
+                'update' => 'Update',
+            ],
+        ],
         'backup' => [
             'name' => 'Backup',
             'description' => 'Workspace export. Platform database backups stay with the super admin.',

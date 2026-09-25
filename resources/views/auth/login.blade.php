@@ -2,29 +2,9 @@
 
 @section('full')
     <div class="grid min-h-screen lg:grid-cols-2">
-        <aside class="relative hidden overflow-hidden bg-slate-950 text-white lg:flex lg:flex-col lg:justify-between lg:p-12">
-            <div class="pointer-events-none absolute inset-0"
-                 style="background:
-                    radial-gradient(900px 420px at 10% -10%, rgba(15,118,110,.55), transparent 60%),
-                    radial-gradient(700px 360px at 90% 20%, rgba(13,148,136,.28), transparent 55%),
-                    linear-gradient(165deg, #042f2e, #020617 70%);"></div>
-            <div class="relative">
-                <a href="{{ route('home') }}" class="text-sm font-semibold tracking-wide text-teal-100/90">
-                    {{ ($hostTenant ?? null)?->name ?? config('app.name') }}
-                </a>
-                <h1 class="mt-16 max-w-md text-4xl font-semibold tracking-tight text-white">
-                    One login for platform and workspace.
-                </h1>
-                <p class="mt-4 max-w-sm text-base leading-relaxed text-teal-50/75">
-                    Manage tenants, content forms, themes, and public sites from the same account.
-                </p>
-            </div>
-            <p class="relative text-sm text-slate-400">Secure multi-tenant content platform</p>
-        </aside>
-
         <main class="flex flex-col justify-center px-4 py-10 sm:px-8">
             <div class="mx-auto w-full max-w-md">
-                <div class="mb-8 lg:hidden">
+                <div class="mb-8">
                     <a href="{{ route('home') }}" class="text-sm font-semibold text-teal-800">
                         {{ ($hostTenant ?? null)?->name ?? config('app.name') }}
                     </a>
@@ -70,5 +50,86 @@
                 </div>
             </div>
         </main>
+
+        <aside class="relative hidden overflow-hidden bg-slate-950 text-white lg:flex lg:flex-col lg:justify-end lg:p-12">
+            <canvas id="login-hero-canvas" class="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true"></canvas>
+            <div class="pointer-events-none absolute inset-0"
+                 style="background:
+                    radial-gradient(900px 420px at 80% -10%, rgba(15,118,110,.5), transparent 60%),
+                    radial-gradient(700px 360px at 10% 80%, rgba(13,148,136,.22), transparent 55%),
+                    linear-gradient(165deg, rgba(4,47,46,.55), rgba(2,6,23,.72) 70%);"></div>
+            <div class="relative z-10 max-w-md">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-100/80">Content Platform</p>
+                <h2 class="mt-4 text-3xl font-semibold tracking-tight text-white">
+                    One login for platform and workspace.
+                </h2>
+                <p class="mt-4 text-base leading-relaxed text-teal-50/75">
+                    Manage tenants, content forms, themes, and public sites from the same account.
+                </p>
+            </div>
+            <script type="module">
+                const canvas = document.getElementById('login-hero-canvas');
+                if (canvas && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                    try {
+                        const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js');
+                        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+                        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+                        const scene = new THREE.Scene();
+                        const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 100);
+                        camera.position.set(0, 0.35, 16);
+                        const count = 480;
+                        const positions = new Float32Array(count * 3);
+                        const speeds = new Float32Array(count);
+                        for (let i = 0; i < count; i++) {
+                            positions[i * 3] = (Math.random() - 0.5) * 38;
+                            positions[i * 3 + 1] = (Math.random() - 0.5) * 22;
+                            positions[i * 3 + 2] = (Math.random() - 0.5) * 16;
+                            speeds[i] = 0.2 + Math.random() * 0.8;
+                        }
+                        const geometry = new THREE.BufferGeometry();
+                        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                        const points = new THREE.Points(
+                            geometry,
+                            new THREE.PointsMaterial({ color: 0xffffff, size: 0.06, transparent: true, opacity: 0.72, depthAttenuation: true })
+                        );
+                        const core = new THREE.Mesh(
+                            new THREE.IcosahedronGeometry(3.2, 1),
+                            new THREE.MeshBasicMaterial({ color: 0x5eead4, wireframe: true, transparent: true, opacity: 0.4 })
+                        );
+                        const ring = new THREE.Mesh(
+                            new THREE.TorusGeometry(5.6, 0.03, 12, 120),
+                            new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.25 })
+                        );
+                        ring.rotation.x = Math.PI / 2.35;
+                        scene.add(points, core, ring);
+                        const resize = () => {
+                            const width = canvas.clientWidth;
+                            const height = canvas.clientHeight;
+                            if (!width || !height) return;
+                            renderer.setSize(width, height, false);
+                            camera.aspect = width / height;
+                            camera.updateProjectionMatrix();
+                        };
+                        const tick = (time) => {
+                            const t = time * 0.001;
+                            core.rotation.y = t * 0.2;
+                            core.rotation.x = t * 0.09;
+                            ring.rotation.z = t * 0.14;
+                            points.rotation.y = t * 0.04;
+                            const pos = geometry.attributes.position.array;
+                            for (let i = 0; i < count; i++) {
+                                pos[i * 3 + 1] += Math.sin(t * speeds[i] + i) * 0.004;
+                            }
+                            geometry.attributes.position.needsUpdate = true;
+                            renderer.render(scene, camera);
+                            requestAnimationFrame(tick);
+                        };
+                        resize();
+                        window.addEventListener('resize', resize);
+                        requestAnimationFrame(tick);
+                    } catch (e) {}
+                }
+            </script>
+        </aside>
     </div>
 @endsection

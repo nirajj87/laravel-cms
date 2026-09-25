@@ -12,7 +12,7 @@ class Navigation
     private array $frontendSlugs = ['layout-builder', 'menu-manager', 'header-footer', 'theme-settings'];
 
     /** @var list<string> */
-    private array $backendSlugs = ['users', 'roles', 'permissions', 'settings', 'backup'];
+    private array $backendSlugs = ['users', 'roles', 'permissions', 'commerce', 'settings', 'backup'];
 
     /**
      * Flat links plus one or two dropdown groups.
