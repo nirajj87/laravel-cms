@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToTenant;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Customer extends Authenticatable
 {
@@ -15,7 +15,11 @@ class Customer extends Authenticatable
         'name',
         'email',
         'password',
+        'issued_password',
         'phone',
+        'pincode',
+        'address',
+        'landmark',
     ];
 
     protected $hidden = [
@@ -27,6 +31,7 @@ class Customer extends Authenticatable
     {
         return [
             'password' => 'hashed',
+            'issued_password' => 'encrypted',
         ];
     }
 

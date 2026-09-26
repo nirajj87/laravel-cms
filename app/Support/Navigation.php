@@ -15,7 +15,7 @@ class Navigation
     private array $backendSlugs = ['users', 'roles', 'permissions', 'commerce', 'settings', 'backup'];
 
     /**
-     * Flat links plus one or two dropdown groups.
+     * Flat links plus dropdown groups.
      *
      * @return list<array<string, mixed>>
      */
@@ -60,14 +60,18 @@ class Navigation
                 continue;
             }
 
-            $link = $this->link(
-                $module->name,
-                $route,
-                $module->icon ?: 'grid',
-                str_ends_with($route, '.index')
-                    ? str_replace('.index', '.*', $route)
-                    : (str_ends_with($route, '.edit') ? str_replace('.edit', '.*', $route) : $route),
-            );
+            $label = $module->name;
+            $active = str_ends_with($route, '.index')
+                ? str_replace('.index', '.*', $route)
+                : (str_ends_with($route, '.edit') ? str_replace('.edit', '.*', $route) : $route);
+
+            // Settings stay under Backend Settings; customers/orders live under WooCommerce.
+            if ($module->slug === 'commerce') {
+                $label = 'Commerce settings';
+                $active = 'tenant.commerce.edit';
+            }
+
+            $link = $this->link($label, $route, $module->icon ?: 'grid', $active);
 
             if (in_array($module->slug, $this->frontendSlugs, true)) {
                 $frontend[] = $link;
@@ -76,6 +80,21 @@ class Navigation
             } else {
                 $items[] = $link;
             }
+        }
+
+        if ($tenant->hasModule('commerce') && $user->hasPermission('commerce.view')
+            && Route::has('tenant.commerce.customers')
+            && Route::has('tenant.commerce.orders')
+            && Route::has('tenant.commerce.finance')
+            && Route::has('tenant.commerce.inventory')
+            && Route::has('tenant.commerce.payments')) {
+            $items[] = $this->group('WooCommerce', 'cart', [
+                $this->link('Finance', 'tenant.commerce.finance', 'chart', 'tenant.commerce.finance'),
+                $this->link('Orders', 'tenant.commerce.orders', 'document', 'tenant.commerce.orders*'),
+                $this->link('Payments', 'tenant.commerce.payments', 'archive', 'tenant.commerce.payments'),
+                $this->link('Customers', 'tenant.commerce.customers', 'users', 'tenant.commerce.customers*'),
+                $this->link('Inventory', 'tenant.commerce.inventory', 'folder', 'tenant.commerce.inventory*'),
+            ]);
         }
 
         if ($frontend !== []) {

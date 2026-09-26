@@ -8,8 +8,11 @@ use App\Models\Post;
 use App\Models\Tenant;
 use App\Support\Cart;
 use App\Support\CommerceSettings;
+use App\Support\CommerceTax;
+use App\Support\Inventory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class CartController extends Controller
@@ -22,7 +25,9 @@ class CartController extends Controller
             'tenant' => $siteTenant,
             'items' => Cart::items($siteTenant),
             'subtotal' => Cart::subtotal($siteTenant),
+            'tax' => CommerceTax::fromSubtotal(Cart::subtotal($siteTenant)),
             'commerce' => CommerceSettings::settings($siteTenant),
+            'customer' => Auth::guard('customer')->user(),
         ]);
     }
 
@@ -34,17 +39,25 @@ class CartController extends Controller
             'qty' => ['nullable', 'integer', 'min:1', 'max:99'],
         ]);
         $post = Post::query()->visible()->with('contentType.fields')->whereKey($data['post_id'])->firstOrFail();
-        Cart::add($siteTenant, $post, self::unitPrice($post), (int) ($data['qty'] ?? 1));
+        $qty = (int) ($data['qty'] ?? 1);
+        Inventory::assertAvailable($siteTenant, $post, $qty + (int) (Cart::items($siteTenant)[$post->id]['qty'] ?? 0));
+        Cart::add($siteTenant, $post, self::unitPrice($post), $qty);
 
         return redirect()
             ->route('site.cart.show', ['siteTenant' => $siteTenant->slug])
             ->with('status', 'Added to cart.');
     }
 
-    public function addGet(Tenant $siteTenant, int $post): RedirectResponse
+    public function addGet(Tenant $siteTenant, int $postId): RedirectResponse
     {
         abort_unless(CommerceSettings::cartEnabled($siteTenant), 404);
-        $model = Post::query()->visible()->with('contentType.fields')->whereKey($post)->firstOrFail();
+        $model = Post::query()->visible()->with('contentType.fields')->whereKey($postId)->firstOrFail();
+        if (Inventory::isSoldOut($siteTenant, $model)) {
+            return redirect()
+                ->route('site.home', ['siteTenant' => $siteTenant->slug])
+                ->with('status', $model->title.' is sold out.');
+        }
+        Inventory::assertAvailable($siteTenant, $model, 1 + (int) (Cart::items($siteTenant)[$model->id]['qty'] ?? 0));
         Cart::add($siteTenant, $model, self::unitPrice($model), 1);
 
         return redirect()
@@ -59,6 +72,12 @@ class CartController extends Controller
             'post_id' => ['required', 'integer'],
             'qty' => ['required', 'integer', 'min:0', 'max:99'],
         ]);
+        if ((int) $data['qty'] > 0) {
+            $post = Post::query()->whereKey($data['post_id'])->first();
+            if ($post) {
+                Inventory::assertAvailable($siteTenant, $post, (int) $data['qty']);
+            }
+        }
         Cart::update($siteTenant, (int) $data['post_id'], (int) $data['qty']);
 
         return back()->with('status', 'Cart updated.');

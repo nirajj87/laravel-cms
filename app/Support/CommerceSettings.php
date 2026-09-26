@@ -23,6 +23,7 @@ class CommerceSettings
         return [
             'cart_enabled' => filter_var($input['cart_enabled'] ?? true, FILTER_VALIDATE_BOOL),
             'checkout_enabled' => filter_var($input['checkout_enabled'] ?? true, FILTER_VALIDATE_BOOL),
+            'gst_rate' => 18.0,
             'gateway' => $gateway,
             'currency' => strtoupper(mb_substr(preg_replace('/[^A-Za-z]/', '', (string) ($input['currency'] ?? 'INR')) ?: 'INR', 0, 3)),
             'razorpay_key' => mb_substr(trim((string) ($input['razorpay_key'] ?? '')), 0, 120),

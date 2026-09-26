@@ -147,6 +147,15 @@ Route::middleware(['auth', 'tenant'])->prefix('app')->name('tenant.')->group(fun
         Route::get('/commerce', [CommerceController::class, 'edit'])->middleware('permission:commerce.view')->name('commerce.edit');
         Route::put('/commerce', [CommerceController::class, 'update'])->middleware('permission:commerce.update')->name('commerce.update');
         Route::put('/commerce/orders/{order}', [CommerceController::class, 'updateOrder'])->middleware('permission:commerce.update')->name('commerce.orders.update');
+        Route::get('/commerce/customers', [CommerceController::class, 'customers'])->middleware('permission:commerce.view')->name('commerce.customers');
+        Route::get('/commerce/customers/{customer}', [CommerceController::class, 'customer'])->middleware('permission:commerce.view')->name('commerce.customers.show');
+        Route::get('/commerce/orders', [CommerceController::class, 'orders'])->middleware('permission:commerce.view')->name('commerce.orders');
+        Route::get('/commerce/orders/{order}', [CommerceController::class, 'order'])->middleware('permission:commerce.view')->name('commerce.orders.show');
+        Route::get('/commerce/orders/{order}/invoice', [CommerceController::class, 'invoice'])->middleware('permission:commerce.view')->name('commerce.orders.invoice');
+        Route::get('/commerce/payments', [CommerceController::class, 'payments'])->middleware('permission:commerce.view')->name('commerce.payments');
+        Route::get('/commerce/inventory', [CommerceController::class, 'inventory'])->middleware('permission:commerce.view')->name('commerce.inventory');
+        Route::put('/commerce/inventory/{item}', [CommerceController::class, 'updateInventory'])->middleware('permission:commerce.update')->name('commerce.inventory.update');
+        Route::get('/commerce/finance', [CommerceController::class, 'finance'])->middleware('permission:commerce.view')->name('commerce.finance');
     });
 
     Route::middleware('module:email')->group(function () {

@@ -34,7 +34,9 @@
                 @if ($card['rating'])<span class="site-meta-rating">{{ $card['rating'] }}</span>@endif
             </div>
         @endif
-        @if ($card['button_url'])
+        @if (! empty($card['sold_out']))
+            <span class="site-btn site-btn-outline" style="opacity:.7;pointer-events:none;">Sold out</span>
+        @elseif ($card['button_url'])
             <a class="site-btn site-btn-{{ $card['button_style'] }}" href="{{ $card['button_url'] }}" @if ($card['button_target'] === '_blank') target="_blank" rel="noopener noreferrer" @endif>{{ $card['button_label'] }}</a>
         @elseif ($card['href'])
             <a class="site-btn" href="{{ $card['href'] }}">{{ $card['label'] }}</a>

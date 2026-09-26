@@ -74,7 +74,7 @@ class ContentPresenter
         if ($excerpt === null || $excerpt === '') {
             $description = $type->fields->first(fn (ContentTypeField $field) => $field->enabled && $field->key === 'description');
             $raw = $description ? $this->scalar($post, $description) : null;
-            $excerpt = $raw ? mb_strimwidth($raw, 0, 140, 'â€¦') : null;
+            $excerpt = $raw ? mb_strimwidth($raw, 0, 140, 'Ã¢â‚¬Â¦') : null;
         }
 
         $author = $type->fields->first(fn (ContentTypeField $field) => $field->enabled && $field->key === 'author');
@@ -93,9 +93,13 @@ class ContentPresenter
         $priceValue = $price ? $this->scalar($post, $price) : null;
 
         if (CommerceSettings::cartEnabled($tenant) && $priceValue !== null && $priceValue !== '') {
+            $soldOut = Inventory::isSoldOut($tenant, $post);
             $labelLower = mb_strtolower($buttonLabel);
-            if (str_contains($labelLower, 'buy') || ($buttonField && $buttonField->key === 'buy_now')) {
-                $buttonUrl = route('site.cart.add.get', ['siteTenant' => $tenant->slug, 'post' => $post->id]);
+            if ($soldOut) {
+                $buttonUrl = null;
+                $buttonLabel = 'Sold out';
+            } elseif (str_contains($labelLower, 'buy') || ($buttonField && $buttonField->key === 'buy_now')) {
+                $buttonUrl = route('site.cart.add.get', ['siteTenant' => $tenant->slug, 'postId' => $post->id]);
             }
         }
 
@@ -113,6 +117,7 @@ class ContentPresenter
             'label' => is_array($button) ? ($button['label'] ?? 'Open') : 'View',
             'button_url' => $buttonUrl,
             'button_label' => $buttonLabel,
+            'sold_out' => isset($soldOut) ? $soldOut : false,
             'button_style' => SiteTheme::buttonStyle(is_array($button) ? ($button['style'] ?? null) : null),
             'button_target' => str_contains((string) $buttonUrl, '/cart/') ? '_self' : SiteTheme::target(is_array($button) ? ($button['new_tab'] ?? false) : false),
         ];
@@ -134,7 +139,7 @@ class ContentPresenter
             }
         }
 
-        return $letters !== '' ? $letters : 'â€¢';
+        return $letters !== '' ? $letters : 'Ã¢â‚¬Â¢';
     }
 
     public function imageUrl(Post $post, ContentTypeField $field): ?string

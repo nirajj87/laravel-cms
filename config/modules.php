@@ -296,8 +296,8 @@ return [
             ],
         ],
         'commerce' => [
-            'name' => 'Commerce',
-            'description' => 'Cart, checkout, payment gateway, and orders.',
+            'name' => 'Commerce settings',
+            'description' => 'Cart, checkout, and payment gateway settings. Customers and orders are under WooCommerce.',
             'group' => 'backend',
             'icon' => 'cart',
             'sort_order' => 175,

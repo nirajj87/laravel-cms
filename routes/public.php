@@ -25,15 +25,19 @@ Route::prefix('site/{siteTenant}')->name('site.')->group(function () {
 
     Route::get('/cart', [CartController::class, 'show'])->name('cart.show');
     Route::post('/cart', [CartController::class, 'add'])->middleware('throttle:60,1')->name('cart.add');
-    Route::get('/cart/add/{post}', [CartController::class, 'addGet'])->middleware('throttle:60,1')->name('cart.add.get');
+    Route::get('/cart/add/{postId}', [CartController::class, 'addGet'])->middleware('throttle:60,1')->name('cart.add.get');
     Route::patch('/cart', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/cart', [CartController::class, 'remove'])->name('cart.remove');
 
     Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
     Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('throttle:30,1')->name('checkout.store');
 
-    Route::get('/payment/{order}', [PaymentController::class, 'show'])->middleware('auth:customer')->name('payment.show');
-    Route::post('/payment/{order}', [PaymentController::class, 'confirm'])->middleware('auth:customer')->name('payment.confirm');
+    Route::get('/payment/{order}', [PaymentController::class, 'show'])->name('payment.show');
+    Route::post('/payment/{order}', [PaymentController::class, 'confirm'])->middleware('throttle:30,1')->name('payment.confirm');
+    Route::get('/payment/{order}/gateway/{method}', [PaymentController::class, 'gateway'])->name('payment.gateway');
+    Route::post('/payment/{order}/gateway-return', [PaymentController::class, 'gatewayReturn'])->middleware('throttle:30,1')->name('payment.gateway.return');
+    Route::get('/payment/{order}/thanks', [PaymentController::class, 'thanks'])->name('payment.thanks');
+    Route::get('/payment/{order}/invoice', [PaymentController::class, 'invoice'])->name('payment.invoice');
 
     Route::prefix('account')->name('account.')->group(function () {
         Route::get('/login', [CustomerAuthController::class, 'showLogin'])->name('login');

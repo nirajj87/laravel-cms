@@ -20,6 +20,8 @@ class Order extends Model
         'payment_gateway',
         'currency',
         'subtotal',
+        'tax_rate',
+        'tax_amount',
         'total',
         'billing',
         'shipping',
@@ -33,6 +35,8 @@ class Order extends Model
             'billing' => 'array',
             'shipping' => 'array',
             'subtotal' => 'decimal:2',
+            'tax_rate' => 'decimal:2',
+            'tax_amount' => 'decimal:2',
             'total' => 'decimal:2',
             'paid_at' => 'datetime',
         ];

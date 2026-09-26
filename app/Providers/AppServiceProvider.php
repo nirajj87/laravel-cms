@@ -60,7 +60,7 @@ class AppServiceProvider extends ServiceProvider
         View::composer('layouts.app', function ($view) {
             $user = auth()->user();
             $tenant = app(TenantContext::class)->get();
-            $cacheKey = 'nav.v5.'.($user?->id ?? 0).'.'.($tenant?->id ?? 0).'.'.(request()->routeIs('tenant.*') ? 't' : 'p');
+            $cacheKey = 'nav.v6.'.($user?->id ?? 0).'.'.($tenant?->id ?? 0).'.'.(request()->routeIs('tenant.*') ? 't' : 'p');
 
             $view->with('navigation', Cache::remember($cacheKey, 120, fn () => app(Navigation::class)->for($user)));
             $view->with('currentTenant', $tenant);
@@ -180,6 +180,16 @@ class AppServiceProvider extends ServiceProvider
             abort_unless($id, 404);
 
             return Post::withoutGlobalScope('tenant')
+                ->where('tenant_id', $id)
+                ->whereKey($value)
+                ->firstOrFail();
+        });
+
+        Route::bind('customer', function (string $value) use ($tenantId) {
+            $id = $tenantId() ?: app(\App\Support\TenantContext::class)->id();
+            abort_unless($id, 404);
+
+            return \App\Models\Customer::withoutGlobalScope('tenant')
                 ->where('tenant_id', $id)
                 ->whereKey($value)
                 ->firstOrFail();

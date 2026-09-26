@@ -21,6 +21,20 @@
     <header class="site-header" style="border-bottom:1px solid var(--site-card-border);">
         <div class="site-wrap site-bar">
             @include('public.region', ['region' => 'header', 'bare' => true])
+            @php
+                $commerceOn = \App\Support\CommerceSettings::cartEnabled($tenant);
+                $customer = auth('customer')->user();
+            @endphp
+            @if ($commerceOn)
+                <nav class="site-nav" aria-label="Shop" style="margin-left:.5rem;">
+                    <a href="{{ route('site.cart.show', ['siteTenant' => $tenant->slug]) }}">Cart</a>
+                    @if ($customer)
+                        <a href="{{ route('site.account.dashboard', ['siteTenant' => $tenant->slug]) }}">Account</a>
+                    @else
+                        <a href="{{ route('site.account.login', ['siteTenant' => $tenant->slug]) }}">Customer login</a>
+                    @endif
+                </nav>
+            @endif
             <button class="site-menu-btn site-btn site-btn-outline" type="button" onclick="document.querySelector('.site-nav')?.classList.toggle('is-open')" style="display:none;">Menu</button>
         </div>
         @if (! empty($siteSettings['custom_header']))

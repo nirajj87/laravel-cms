@@ -64,6 +64,11 @@ class Post extends Model
         return $this->belongsTo(MediaAsset::class, 'og_image_id');
     }
 
+    public function inventoryItem(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(InventoryItem::class);
+    }
+
     public function scopeVisible(Builder $query): Builder
     {
         return $query->where(function (Builder $query) {

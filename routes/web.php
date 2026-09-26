@@ -24,3 +24,8 @@ Route::middleware('guest')->group(function () {
 require __DIR__.'/platform.php';
 require __DIR__.'/tenant.php';
 require __DIR__.'/public.php';
+
+Route::redirect('/cart', '/site/northwind/cart');
+Route::redirect('/shop', '/site/northwind');
+Route::redirect('/woocommerce', '/site/northwind/cart');
+Route::redirect('/checkout', '/site/northwind/checkout');
