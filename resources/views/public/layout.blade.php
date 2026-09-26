@@ -30,8 +30,6 @@
                     <a href="{{ route('site.cart.show', ['siteTenant' => $tenant->slug]) }}">Cart</a>
                     @if ($customer)
                         <a href="{{ route('site.account.dashboard', ['siteTenant' => $tenant->slug]) }}">Account</a>
-                    @else
-                        <a href="{{ route('site.account.login', ['siteTenant' => $tenant->slug]) }}">Customer login</a>
                     @endif
                 </nav>
             @endif

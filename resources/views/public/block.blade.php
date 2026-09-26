@@ -9,13 +9,28 @@
         </a>
         @break
     @case('menu')
-        @php $menu = $block->region === 'footer' ? ($footerMenu ?? null) : ($headerMenu ?? null); @endphp
+        @php
+            $menu = $block->region === 'footer' ? ($footerMenu ?? null) : ($headerMenu ?? null);
+            $customerAuth = auth('customer')->user();
+            $commerceOn = \App\Support\CommerceSettings::cartEnabled($tenant);
+        @endphp
         @if ($menu)
             <nav class="site-nav" aria-label="{{ $menu->name }}">
                 @foreach ($menu->items as $item)
                     @continue(! $item->enabled)
                     @continue($item->type === 'login' && empty($siteSettings['show_login']))
-                    <a href="{{ $item->href($tenant) }}" @if ($item->open_new_tab) target="_blank" rel="noopener noreferrer" @endif>{{ $item->label }}</a>
+                    @if ($item->type === 'login')
+                        @if ($customerAuth)
+                            <form method="POST" action="{{ route('site.account.logout', ['siteTenant' => $tenant->slug]) }}" style="display:inline;margin:0;">
+                                @csrf
+                                <button type="submit" class="site-nav-logout" style="background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;cursor:pointer;">Logout</button>
+                            </form>
+                        @else
+                            <a href="{{ $commerceOn ? route('site.account.login', ['siteTenant' => $tenant->slug]) : route('login') }}">{{ $item->label ?: 'Login' }}</a>
+                        @endif
+                    @else
+                        <a href="{{ $item->href($tenant) }}" @if ($item->open_new_tab) target="_blank" rel="noopener noreferrer" @endif>{{ $item->label }}</a>
+                    @endif
                 @endforeach
                 @if ($block->region === 'header' && ($siteSettings['cta_label'] ?? '') !== '' && ($siteSettings['cta_url'] ?? '') !== '')
                     <a class="site-btn" href="{{ $siteSettings['cta_url'] }}" @if (! empty($siteSettings['cta_new_tab'])) target="_blank" rel="noopener noreferrer" @endif>{{ $siteSettings['cta_label'] }}</a>
@@ -24,8 +39,19 @@
         @endif
         @break
     @case('login')
+        @php
+            $customerAuth = auth('customer')->user();
+            $commerceOn = \App\Support\CommerceSettings::cartEnabled($tenant);
+        @endphp
         @if (! empty($siteSettings['show_login']))
-            <a class="site-btn site-btn-outline" href="{{ route('login') }}">Login</a>
+            @if ($customerAuth)
+                <form method="POST" action="{{ route('site.account.logout', ['siteTenant' => $tenant->slug]) }}" style="display:inline;margin:0;">
+                    @csrf
+                    <button class="site-btn site-btn-outline" type="submit">Logout</button>
+                </form>
+            @else
+                <a class="site-btn site-btn-outline" href="{{ $commerceOn ? route('site.account.login', ['siteTenant' => $tenant->slug]) : route('login') }}">Login</a>
+            @endif
         @endif
         @break
     @case('search')

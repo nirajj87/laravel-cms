@@ -15,26 +15,38 @@ class CustomerDashboardController extends Controller
     public function dashboard(Tenant $siteTenant): View
     {
         $customer = Auth::guard('customer')->user();
-        $orders = Order::query()->where('customer_id', $customer->id)->latest()->limit(5)->get();
+        $base = Order::query()->where('customer_id', $customer->id);
 
         return view('public.commerce.dashboard', [
             'tenant' => $siteTenant,
             'customer' => $customer,
-            'orders' => $orders,
+            'orders' => (clone $base)->withCount('items')->latest()->limit(8)->get(),
             'cartCount' => Cart::count($siteTenant),
             'commerce' => CommerceSettings::settings($siteTenant),
+            'stats' => [
+                'orders' => (clone $base)->count(),
+                'paid' => (clone $base)->where('payment_status', 'paid')->count(),
+                'pending' => (clone $base)->whereIn('payment_status', ['pending_payment', 'unpaid'])->count(),
+                'spent' => (float) (clone $base)->where('payment_status', 'paid')->sum('total'),
+            ],
         ]);
     }
 
     public function orders(Tenant $siteTenant): View
     {
         $customer = Auth::guard('customer')->user();
-        $orders = Order::query()->where('customer_id', $customer->id)->withCount('items')->latest()->paginate(12);
+        $orders = Order::query()
+            ->where('customer_id', $customer->id)
+            ->withCount('items')
+            ->latest()
+            ->paginate(12);
 
         return view('public.commerce.orders', [
             'tenant' => $siteTenant,
             'customer' => $customer,
             'orders' => $orders,
+            'cartCount' => Cart::count($siteTenant),
+            'commerce' => CommerceSettings::settings($siteTenant),
         ]);
     }
 
@@ -47,6 +59,8 @@ class CustomerDashboardController extends Controller
             'tenant' => $siteTenant,
             'customer' => $customer,
             'order' => $order->load('items'),
+            'cartCount' => Cart::count($siteTenant),
+            'commerce' => CommerceSettings::settings($siteTenant),
         ]);
     }
 }
